@@ -4,6 +4,7 @@ from .views import (
     LessonDetailAPIView,
     TestDetailAPIView,
     TestSubmitAPIView,
+    GoogleAuthAPIView,
 )
 
 urlpatterns = [
@@ -11,4 +12,5 @@ urlpatterns = [
     path("lessons/<int:pk>/", LessonDetailAPIView.as_view()),
     path("tests/<int:pk>/", TestDetailAPIView.as_view()),
     path("tests/submit/", TestSubmitAPIView.as_view()),
+    path("auth/google/", GoogleAuthAPIView.as_view()),
 ]

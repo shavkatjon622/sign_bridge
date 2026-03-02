@@ -38,3 +38,8 @@ class TestSubmitSerializer(serializers.Serializer):
             raise serializers.ValidationError("XP cannot be negative")
 
         return data
+
+
+
+class GoogleAuthSerializer(serializers.Serializer):
+    id_token = serializers.CharField()

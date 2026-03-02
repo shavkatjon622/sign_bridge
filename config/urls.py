@@ -2,8 +2,10 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
+    # admin panel path
     path('admin/', admin.site.urls),
 
     # Schema
@@ -12,5 +14,10 @@ urlpatterns = [
     # Swagger UI
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
 
+    # urls app path
     path("api/", include("core.urls")),
+
+    # sign in JWT
+    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
