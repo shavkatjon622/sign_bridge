@@ -121,7 +121,12 @@ class TestResult(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
     score = models.IntegerField()
+    percentage = models.FloatField()
+    xp_earned = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "test")  # bir testni 1 marta
 
     def __str__(self):
         return f"{self.user} - {self.test} - {self.score}"
