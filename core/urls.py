@@ -1,16 +1,15 @@
-from django.urls import path
-from .views import (
-    LessonListAPIView,
-    LessonDetailAPIView,
-    TestDetailAPIView,
-    TestSubmitAPIView,
-    GoogleAuthAPIView,
-)
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import LessonCategoryViewSet, LessonViewSet, WordCategoryViewSet, WordViewSet
 
+# Router yaratamiz, u barcha manzillarni o'zi avtomatlashtiradi
+router = DefaultRouter()
+router.register(r'lesson-categories', LessonCategoryViewSet)
+router.register(r'lessons', LessonViewSet)
+router.register(r'word-categories', WordCategoryViewSet)
+router.register(r'words', WordViewSet)
+
+# Endi hammasini routerga topshiramiz
 urlpatterns = [
-    path("lessons/", LessonListAPIView.as_view()),
-    path("lessons/<int:pk>/", LessonDetailAPIView.as_view()),
-    path("tests/<int:pk>/", TestDetailAPIView.as_view()),
-    path("tests/submit/", TestSubmitAPIView.as_view()),
-    path("auth/google/", GoogleAuthAPIView.as_view()),
+    path('', include(router.urls)),
 ]

@@ -13,7 +13,7 @@ SECRET_KEY = 'django-insecure-@!j%ine^wf35hmf2gt69*k^x@nq7&5gxf7lw7$t^jjhejf##ue
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     # intalled package
     "rest_framework",
     "drf_spectacular",
+    "corsheaders",
 ]
 
 
@@ -60,6 +61,7 @@ SPECTACULAR_SETTINGS = {
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

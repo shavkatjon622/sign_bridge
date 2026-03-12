@@ -1,45 +1,30 @@
 from rest_framework import serializers
-from .models import Lesson, Test, Question, TestResult, User
+from .models import LessonCategory, Lesson, Category, Word
 
+# Dars kategoriyalari uchun
+class LessonCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LessonCategory
+        fields = ['id', 'title', 'image']
 
+# Darslar uchun
 class LessonSerializer(serializers.ModelSerializer):
+    category = LessonCategorySerializer(read_only=True) # Kategoriyani to'liq ma'lumoti bilan qaytaradi
+
     class Meta:
         model = Lesson
-        fields = "__all__"
+        fields = ['id', 'category', 'title', 'description', 'video_url', 'xp_reward', 'views_count', 'created_at']
 
-
-class QuestionSerializer(serializers.ModelSerializer):
+# So'z kategoriyalari uchun
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = Question
-        exclude = ["correct_option"]  # userga correct javob chiqmaydi
+        model = Category
+        fields = ['id', 'name', 'image']
 
-
-class TestSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True, read_only=True)
+# So'zlar uchun
+class WordSerializer(serializers.ModelSerializer):
+    category = CategorySerializer(read_only=True)
 
     class Meta:
-        model = Test
-        fields = ["id", "title", "lesson", "questions"]
-
-
-
-
-class TestSubmitSerializer(serializers.Serializer):
-    test_id = serializers.IntegerField()
-    score = serializers.IntegerField()
-    percentage = serializers.FloatField()
-    xp_earned = serializers.IntegerField()
-
-    def validate(self, data):
-        if data["percentage"] < 0 or data["percentage"] > 100:
-            raise serializers.ValidationError("Percentage must be between 0 and 100")
-
-        if data["xp_earned"] < 0:
-            raise serializers.ValidationError("XP cannot be negative")
-
-        return data
-
-
-
-class GoogleAuthSerializer(serializers.Serializer):
-    id_token = serializers.CharField()
+        model = Word
+        fields = ['id', 'category', 'text', 'text_uz', 'text_ru', 'definition', 'video_url', 'created_at']
