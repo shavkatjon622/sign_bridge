@@ -3,6 +3,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from rest_framework.response import Response
 from rest_framework import status, filters
+from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from .models import User
@@ -15,10 +16,6 @@ from .serializers import LessonCategorySerializer, LessonSerializer, CategorySer
 class LessonCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LessonCategory.objects.all()
     serializer_class = LessonCategorySerializer
-
-class LessonViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Lesson.objects.all().order_by('-created_at') # Eng yangilari birinchi chiqadi
-    serializer_class = LessonSerializer
 
 class WordCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
@@ -106,27 +103,43 @@ class LessonViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Lesson.objects.all().order_by('-created_at')
     serializer_class = LessonSerializer
 
-    # Yangi: Dars ko'rilganini belgilash API'si
+    # Dars ko'rilganini belgilash va XP berish API'si
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def view_lesson(self, request, pk=None):
         lesson = self.get_object()  # ID bo'yicha darsni topamiz
         user = request.user
 
-        # Prosmotrni bittaga oshiramiz
+        # 1. Prosmotrni bittaga oshiramiz
         lesson.views_count += 1
         lesson.save()
 
-        # User uchun Progress ochamiz (agar oldin ochilmagan bo'lsa)
+        # 2. User uchun Progress ochamiz (agar oldin ochilmagan bo'lsa)
         progress, created = LessonProgress.objects.get_or_create(user=user, lesson=lesson)
 
-        # Agar darsni to'liq ko'rdim deb signal kelsa, completed qilib qo'yamiz
+        message = "Dars ko'rildi"
+        added_xp = 0
+
+        # 3. Agar darsni to'liq ko'rdim deb signal kelsa, completed qilib, XP beramiz
         if request.data.get('is_completed') == True and not progress.is_completed:
             progress.is_completed = True
-            from django.utils import timezone
             progress.completed_at = timezone.now()
             progress.save()
 
-        return Response({"message": "Dars ko'rildi", "views_count": lesson.views_count})
+            # --- XP QO'SHISH LOGIKASI ---
+            # Agar sizning User modelingizda 'xp' degan maydon bo'lsa:
+            user.xp += 10  # Masalan 10 ball beramiz
+            user.save()
+
+            message = "Dars muvaffaqiyatli tugatildi va XP qo'shildi!"
+            added_xp = 10
+
+        return Response({
+            "message": message,
+            "views_count": lesson.views_count,
+            "is_completed": progress.is_completed,
+            "added_xp": added_xp,
+            "total_xp": getattr(user, 'xp', 0)  # Userda xp bo'lsa uni ko'rsatadi
+        })
 
 
 class TestViewSet(viewsets.ReadOnlyModelViewSet):
