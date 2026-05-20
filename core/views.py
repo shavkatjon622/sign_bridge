@@ -12,14 +12,26 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import LessonCategory, Lesson, Category, Word, Test, LessonProgress, QuestionOption, TestResult
 from .serializers import LessonCategorySerializer, LessonSerializer, CategorySerializer, WordSerializer, TestListSerializer, TestDetailSerializer, GoogleLoginSerializer, LogoutSerializer, UserProfileSerializer, UserUpdateSerializer
+from rest_framework.pagination import PageNumberPagination
+
+
+
+class CustomPageNumberPagination(PageNumberPagination):
+    page_size = 10  # Agar mobilchi hech narsa yubormasa, default 10 ta qaytadi
+    page_size_query_param = 'limit'  # Mobilchi nechtalik kerakligini shu so'z bilan yuboradi
+    max_page_size = 100  # Xavfsizlik uchun: 100 tadan ko'p so'rasa ham, faqat 100 ta beradi (server qotmasligi uchun)
+
+
 
 class LessonCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = LessonCategory.objects.all()
     serializer_class = LessonCategorySerializer
+    pagination_class = CustomPageNumberPagination  
 
 class WordCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    pagination_class = CustomPageNumberPagination
 
 class WordViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Word.objects.all().order_by('-created_at')
@@ -27,15 +39,6 @@ class WordViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['text', 'text_uz', 'text_ru', 'definition']
 
-
-class TestViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Test.objects.all()
-
-    # Qaysi Serializer ishlatishni dinamik hal qilamiz
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return TestListSerializer  # Ro'yxat uchun qisqa ma'lumot
-        return TestDetailSerializer  # Bitta testni ID bilan ochganda to'liq ma'lumot
 
 
 class GoogleLoginView(GenericAPIView):
@@ -215,16 +218,6 @@ class TestViewSet(viewsets.ReadOnlyModelViewSet):
             "xp_earned": xp_earned,
             "total_user_xp": user.xp
         }, status=status.HTTP_200_OK)
-
-class UserProfileView(GenericAPIView):
-    serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated] # Faqat login qilganlar ko'ra oladi
-
-    def get(self, request, *args, **kwargs):
-        # Murojaat qilayotgan odamni (request.user) olib, uning ma'lumotlarini qolipga solamiz
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class UserProfileView(GenericAPIView):
     permission_classes = [IsAuthenticated]
